@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Redirect } from 'react-router-dom'
 import axios from 'axios'
 
@@ -6,68 +6,67 @@ import apiUrl from '../../apiConfig'
 import BookForm from '../shared/BookForm'
 import Layout from '../shared/Layout'
 
-class BookEdit extends Component {
-  constructor (props) {
-    super(props)
+const BookEdit = props => {
+  // constructor (props) {
+  //   super(props)
 
-    this.state = {
-      book: {
-        title: '',
-        author: ''
-      },
-      updated: false
-    }
-  }
+  //   this.state = {
+  //     book: {
+  //       title: '',
+  //       author: ''
+  //     },
+  //     updated: false
+  //   }
+  // }
+  // The destructuring syntax in this case is pulling two things from the useState hook
+  // First, a piece of state as defined by whatever you pass to useState, {title: '', author: ''}
+  // second, a function that will set that piece of state(which always takes the place of setState)
+  const [book, setBook] = useState({ title: '', author: '' })
+  const [updated, setUpdated] = useState(false)
 
-  componentDidMount () {
-    axios(`${apiUrl}/books/${this.props.match.params.id}`)
-      .then(res => this.setState({ book: res.data.book }))
+  useEffect(() => {
+    axios(`${apiUrl}/books/${props.match.params.id}`)
+      .then(res => setBook(res.data.book))
       .catch(console.error)
-  }
+  }, [])
 
-  handleChange = event => {
+  const handleChange = event => {
     event.persist()
 
-    this.setState(prevState => {
+    setBook(prevBook => {
       const updatedField = { [event.target.name]: event.target.value }
 
-      const editedBook = Object.assign({}, prevState.book, updatedField)
+      const editedBook = Object.assign({}, prevBook, updatedField)
 
-      return { book: editedBook }
+      return editedBook
     })
   }
 
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault()
 
     axios({
-      url: `${apiUrl}/books/${this.props.match.params.id}`,
+      url: `${apiUrl}/books/${props.match.params.id}`,
       method: 'PATCH',
-      data: { book: this.state.book }
+      data: { book }
     })
-      .then(() => this.setState({ updated: true }))
+      .then(() => setUpdated(true))
       .catch(console.error)
   }
-
-  render () {
-    const { book, updated } = this.state
-    const { handleChange, handleSubmit } = this
-
-    if (updated) {
-      return <Redirect to={`/books/${this.props.match.params.id}`} />
-    }
-
-    return (
-      <Layout>
-        <BookForm
-          book={book}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-          cancelPath={`/books/${this.props.match.params.id}`}
-        />
-      </Layout>
-    )
+  if (updated) {
+    return <Redirect to={`/books/${props.match.params.id}`} />
   }
+
+  return (
+    <Layout>
+      <BookForm
+        book={book}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        cancelPath={`/books/${props.match.params.id}`}
+      />
+    </Layout>
+  )
 }
 
 export default BookEdit

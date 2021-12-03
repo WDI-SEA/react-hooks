@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { Redirect } from 'react-router-dom'
 import axios from 'axios'
 
@@ -6,46 +6,50 @@ import apiUrl from '../../apiConfig'
 import BookForm from '../shared/BookForm'
 import Layout from '../shared/Layout'
 
-class BookCreate extends Component {
-  constructor (props) {
-    super(props)
+const BookCreate = props => {
+  // constructor (props) {
+  //   super(props)
 
-    this.state = {
-      book: {
-        title: '',
-        author: ''
-      },
-      createdBookId: null
-    }
-  }
+  //   this.state = {
+  //     book: {
+  //       title: '',
+  //       author: ''
+  //     },
+  //     createdBookId: null
+  //   }
+  // }
+  const [createdBookId, setCreatedBookId] = useState(null)
+  const [book, setBook] = useState({ title: '', author: '' })
 
-  handleChange = event => {
+  const handleChange = event => {
     event.persist()
-
-    this.setState(prevState => {
+    // this.setState will turn into setBook
+    // to maintain a cohesive syntax, we're going to change prevState to prevBook
+    setBook(prevBook => {
       const updatedField = { [event.target.name]: event.target.value }
 
-      const editedBook = Object.assign({}, prevState.book, updatedField)
+      const editedBook = Object.assign({}, prevBook, updatedField)
 
-      return { book: editedBook }
+      return editedBook
     })
   }
 
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault()
 
     axios({
       url: `${apiUrl}/books`,
       method: 'POST',
-      data: { book: this.state.book }
+      data: { book }
     })
-      .then(res => this.setState({ createdBookId: res.data.book._id }))
+      .then(res => setCreatedBookId(res.data.book._id))
       .catch(console.error)
   }
 
-  render () {
-    const { handleChange, handleSubmit } = this
-    const { createdBookId, book } = this.state
+    // now we get rid of the render method, and make sure to get rid of its associated curly brace
+    // we no longer need our destructuring syntax
+    // const { handleChange, handleSubmit } = this
+    // const { createdBookId, book } = this.state
 
     if (createdBookId) {
       return <Redirect to={`/books/${createdBookId}`} />
@@ -61,7 +65,7 @@ class BookCreate extends Component {
         />
       </Layout>
     )
-  }
+
 }
 
 export default BookCreate
